@@ -5,13 +5,18 @@ the rows as JSON. All aggregation logic lives in the database views —
 the router stays a thin SELECT * bridge.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from psycopg.rows import dict_row
 
 from ..database import get_connection
 from ..schemas import LowStockProduct, MonthlyProfit, TopSellingProduct
+from ..security import require_admin
 
-router = APIRouter(prefix="/analytics", tags=["analytics"])
+router = APIRouter(
+    prefix="/analytics",
+    tags=["analytics"],
+    dependencies=[Depends(require_admin)],
+)
 
 
 @router.get("/top-selling-products", response_model=list[TopSellingProduct])

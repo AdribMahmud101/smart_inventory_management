@@ -7,8 +7,49 @@ database access remains raw SQL inside the routers.
 
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, Field
+
+
+# =====================================================================
+# Authentication
+# =====================================================================
+
+class RegisterRequest(BaseModel):
+    """Payload for POST /auth/register."""
+
+    username: str = Field(min_length=3, max_length=50)
+    email: str = Field(min_length=3, max_length=255)
+    password: str = Field(min_length=8, description="Minimum 8 characters")
+    role: Literal["staff", "admin"] = "staff"
+
+
+class LoginRequest(BaseModel):
+    """Payload for POST /auth/login."""
+
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    """Response for a successful login."""
+
+    access_token: str
+    token_type: str = "bearer"
+    user_id: int
+    username: str
+    role: str
+
+
+class UserOut(BaseModel):
+    """Authenticated user info returned by GET /auth/me."""
+
+    id: int
+    username: str
+    email: str
+    role: str
+    is_active: bool
 
 
 # =====================================================================

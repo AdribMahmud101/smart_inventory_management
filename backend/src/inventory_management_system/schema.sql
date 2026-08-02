@@ -32,6 +32,16 @@ CREATE TABLE IF NOT EXISTS users (
     created_at    TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
+-- API Tokens: bearer tokens issued at login (used for authentication).
+-- Only the SHA-256 hash of each token is stored, never the raw token.
+CREATE TABLE IF NOT EXISTS api_tokens (
+    id         BIGSERIAL PRIMARY KEY,
+    user_id    BIGINT       NOT NULL,              -- FK -> users.id (section 2)
+    token_hash VARCHAR(64)  NOT NULL UNIQUE,       -- sha256 hex of the raw token
+    expires_at TIMESTAMPTZ  NOT NULL,
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
 -- Employees: staff members (e.g., shop workers) tied to user accounts.
 CREATE TABLE IF NOT EXISTS employees (
     id         BIGSERIAL PRIMARY KEY,
@@ -200,6 +210,16 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_audit_logs_user') THEN
         ALTER TABLE audit_logs
             ADD CONSTRAINT fk_audit_logs_user
+            FOREIGN KEY (user_id) REFERENCES users (id);
+    END IF;
+END $$;
+
+-- 2.7 users -> api_tokens  (One-to-Many: one user may hold many tokens)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_api_tokens_user') THEN
+        ALTER TABLE api_tokens
+            ADD CONSTRAINT fk_api_tokens_user
             FOREIGN KEY (user_id) REFERENCES users (id);
     END IF;
 END $$;

@@ -7,13 +7,18 @@ exception is raised.
 """
 
 import psycopg
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from psycopg.rows import dict_row
 
 from ..database import get_connection
 from ..schemas import ProductCreate, ProductOut, ProductUpdate
+from ..security import get_current_user
 
-router = APIRouter(prefix="/products", tags=["products"])
+router = APIRouter(
+    prefix="/products",
+    tags=["products"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("", response_model=list[ProductOut])

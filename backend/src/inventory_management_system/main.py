@@ -7,7 +7,7 @@ endpoint.
 
 from fastapi import FastAPI
 
-from inventory_management_system.routers import analytics, products, sales
+from inventory_management_system.routers import analytics, auth, products, sales
 
 # Create the FastAPI application instance.
 app = FastAPI(
@@ -17,6 +17,7 @@ app = FastAPI(
 )
 
 # Register the API routers (modular, one per business domain).
+app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(sales.router)
 app.include_router(analytics.router)

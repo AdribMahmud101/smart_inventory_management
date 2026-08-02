@@ -16,13 +16,18 @@ and always closes the connection.
 
 from decimal import Decimal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from psycopg.rows import dict_row
 
 from ..database import get_connection
 from ..schemas import CheckoutRequest, CheckoutResponse, SaleItemOut
+from ..security import get_current_user
 
-router = APIRouter(prefix="/sales", tags=["sales"])
+router = APIRouter(
+    prefix="/sales",
+    tags=["sales"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.post("", response_model=CheckoutResponse)

@@ -83,5 +83,9 @@ backend/
 - [x] Entity relationships (foreign keys)
 - [x] Triggers: stock reduction + audit logging + low-stock alerts
 - [x] Analytical views (top sellers, monthly profit, low stock)
-- [ ] API endpoints for each entity
-- [ ] Authentication & roles
+- [x] API routers: products CRUD, POS checkout, analytics views
+- [x] Pydantic request/response validation (interactive `/docs`)
+- [x] Authentication & roles (`/auth/*`, PBKDF2 hashing, bearer tokens)
+- [ ] Customers / employees / expenses endpoints
+- [ ] Automated tests / linting / CI
+- [ ] Frontend
