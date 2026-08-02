@@ -54,12 +54,16 @@ chmod +x serve.sh  # only needed once, after cloning
 
 `serve.sh` (at the project root) does everything for you:
 
-1. Creates the demo database (`inventory_test`, overridable via `DB_NAME`) if
+1. **Stops any already-running backend/frontend**, then restarts fresh —
+   so `./serve.sh` always gives you a clean, correct stack (no stale
+   "wrong database" servers left behind)
+2. Creates the demo database (`inventory_test`, overridable via `DB_NAME`) if
    it doesn't exist
-2. Applies the schema (tables, FKs, triggers, views — idempotent)
-3. Starts the **backend** on <http://localhost:8000> (skips it if already running)
-4. Starts the **frontend** on <http://localhost:5173>
-5. Traps your `Ctrl+C` and stops **both** servers cleanly
+3. Applies the schema (tables, FKs, triggers, views — idempotent)
+4. Starts the **backend** on <http://localhost:8000>
+5. Starts the **frontend** on <http://localhost:5173>
+6. Your `Ctrl+C` **completely shuts down both** — no orphan processes stay
+   running (backup kill-by-port + process cleanup)
 
 Output after startup:
 
@@ -195,5 +199,5 @@ pkill -f vite                                     # stop frontend
 | Frontend shows network errors | Start the backend first; check `http://localhost:8000/` |
 | `Database "..." does not exist` | `./serve.sh` creates it automatically, or: `psql -U postgres -h localhost -c "CREATE DATABASE inventory_test;"` |
 | 401 on API calls | Log in again — tokens expire after 7 days |
-| "Address already in use" / port busy | A stale server is running. `./serve.sh` skips an already-running backend; otherwise `pkill -f "uvicorn inventory_management_system"` |
+| "Address already in use" / port busy | `./serve.sh` kills stale servers and restarts fresh; manually: `pkill -f "uvicorn inventory_management_system"` and `pkill -f vite` |
 | 403 on Dashboard/Products | You are logged in as a **staff** user; use an admin account |
