@@ -53,20 +53,37 @@ npm install         # install Vite, React, Tailwind, shadcn/ui, Recharts, axios
 
 ## 3. Serving the backend
 
+> **IMPORTANT — pick the right database.** The backend reads `DB_NAME` at
+> startup. Without it, the app connects to the default `postgres` database
+> and the demo accounts will **not** work (login returns
+> "Invalid credentials").
+
+### Option A — default database (for general development)
+
 ```bash
 cd backend
 uv run uvicorn inventory_management_system.main:app --reload
+```
+
+### Option B — demo database with the seeded accounts (for the course demo)
+
+```bash
+cd backend
+DB_NAME=inventory_test uv run uvicorn inventory_management_system.main:app --reload
 ```
 
 - API: <http://localhost:8000>
 - Health check: <http://localhost:8000/> → `{"status": "System Online"}`
 - Interactive docs (Swagger UI): <http://localhost:8000/docs>
 
-To run against a different database (e.g. the demo database used below):
-
-```bash
-DB_NAME=inventory_test uv run uvicorn inventory_management_system.main:app --reload
-```
+> **Gotcha:** if you previously started the backend without `DB_NAME` and
+> the port is still in use, kill the stale server first — otherwise the old
+> (wrong-database) process keeps serving:
+>
+> ```bash
+> pkill -f "uvicorn inventory_management_system"
+> # then start again with the DB_NAME you need
+> ```
 
 ---
 
@@ -88,12 +105,26 @@ npm run dev
 
 ## 5. Demo accounts
 
-Register users through the app (or `POST /api/auth/register`):
+The demo database `inventory_test` ships with two pre-registered accounts.
+**They only work if the backend is started with `DB_NAME=inventory_test`**
+(Option B in section 3) — a backend pointed at the default `postgres`
+database will reject them with "Invalid credentials".
 
 | Role | Username | Password | Sees in sidebar |
 | ---- | -------- | -------- | --------------- |
 | Admin | `admin01` | `secret123` | Dashboard, POS, Products, placeholders |
 | Employee | `cashier` | `secret123` | POS, placeholders |
+
+To start from scratch, drop the database, re-create it, apply the schema and
+register your own users:
+
+```bash
+psql -U postgres -h localhost -c "DROP DATABASE IF EXISTS inventory_test; CREATE DATABASE inventory_test;"
+cd backend
+DB_NAME=inventory_test uv run python -c "from inventory_management_system.database import init_db; init_db()"
+DB_NAME=inventory_test uv run uvicorn inventory_management_system.main:app --reload
+# then register users via the app at http://localhost:5173/login or POST /api/auth/register
+```
 
 ---
 
@@ -139,8 +170,9 @@ pkill -f vite                                     # stop frontend
 
 | Symptom | Fix |
 | ------- | --- |
+| Login says **"Invalid credentials"** with the demo accounts | The backend is connected to the wrong database. Start it with `DB_NAME=inventory_test` (section 3, Option B), after killing any stale server on port 8000 |
 | Frontend shows network errors | Start the backend first; check `http://localhost:8000/` |
 | `Database "..." does not exist` | Create it: `psql -U postgres -h localhost -c "CREATE DATABASE inventory_test;"` |
 | 401 on API calls | Log in again — tokens expire after 7 days |
-| Port already in use | Change ports (`uvicorn ... --port 8001`, or edit `vite.config.js` proxy) |
+| Port already in use | A stale server is still running — `pkill -f "uvicorn inventory_management_system"` first, or change ports |
 | 403 on Dashboard/Products | You are logged in as a **staff** user; use an admin account |
