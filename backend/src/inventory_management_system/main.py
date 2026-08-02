@@ -6,6 +6,7 @@ endpoint.
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from inventory_management_system.routers import analytics, auth, products, sales
 
@@ -14,6 +15,16 @@ app = FastAPI(
     title="Smart Inventory and Business Management System",
     version="0.1.0",
     description="Backend for a simple inventory management system (educational project).",
+)
+
+# Allow the Vite frontend dev server to call the API directly.
+# In production this should be narrowed to the real frontend origin.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Register the API routers (modular, one per business domain).
