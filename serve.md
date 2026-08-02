@@ -31,17 +31,6 @@ cd backend
 uv sync             # create venv + install dependencies (fastapi, uvicorn, psycopg)
 ```
 
-Apply the database schema (creates all tables, FKs, triggers, views —
-idempotent, safe to re-run):
-
-```bash
-DB_NAME=postgres uv run python -c "from inventory_management_system.database import init_db; init_db()"
-```
-
-Credentials come from environment variables with local defaults
-(`localhost:5432/postgres`). Override with `DB_HOST`, `DB_PORT`, `DB_NAME`,
-`DB_USER`, `DB_PASSWORD` as needed.
-
 ### Frontend
 
 ```bash
@@ -49,23 +38,55 @@ cd frontend
 npm install         # install Vite, React, Tailwind, shadcn/ui, Recharts, axios
 ```
 
+### Make the script executable
+
+```bash
+chmod +x serve.sh  # only needed once, after cloning
+```
+
 ---
 
-## 3. Serving the backend
+## 3. Serving everything — ONE command
+
+```bash
+./serve.sh
+```
+
+`serve.sh` (at the project root) does everything for you:
+
+1. Creates the demo database (`inventory_test`, overridable via `DB_NAME`) if
+   it doesn't exist
+2. Applies the schema (tables, FKs, triggers, views — idempotent)
+3. Starts the **backend** on <http://localhost:8000> (skips it if already running)
+4. Starts the **frontend** on <http://localhost:5173>
+5. Traps your `Ctrl+C` and stops **both** servers cleanly
+
+Output after startup:
+
+```
+  Backend : http://localhost:8000   (Swagger docs: /docs)
+  Frontend: http://localhost:5173
+
+  Demo login:  admin01 / secret123   (admin)
+               cashier / secret123   (staff)
+
+  Press Ctrl+C to stop both servers.
+```
+
+That's it — one command, nothing else to run.
+
+---
+
+## 4. Manual serving (advanced / alternative)
+
+Only needed if you want the servers in separate terminals.
+
+### 4.1 Backend
 
 > **IMPORTANT — pick the right database.** The backend reads `DB_NAME` at
 > startup. Without it, the app connects to the default `postgres` database
 > and the demo accounts will **not** work (login returns
 > "Invalid credentials").
-
-### Option A — default database (for general development)
-
-```bash
-cd backend
-uv run uvicorn inventory_management_system.main:app --reload
-```
-
-### Option B — demo database with the seeded accounts (for the course demo)
 
 ```bash
 cd backend
@@ -76,18 +97,14 @@ DB_NAME=inventory_test uv run uvicorn inventory_management_system.main:app --rel
 - Health check: <http://localhost:8000/> → `{"status": "System Online"}`
 - Interactive docs (Swagger UI): <http://localhost:8000/docs>
 
-> **Gotcha:** if you previously started the backend without `DB_NAME` and
-> the port is still in use, kill the stale server first — otherwise the old
-> (wrong-database) process keeps serving:
+> **Gotcha:** if a previous backend is still using port 8000, kill it first
+> or the old (wrong-database) process keeps serving:
 >
 > ```bash
 > pkill -f "uvicorn inventory_management_system"
-> # then start again with the DB_NAME you need
 > ```
 
----
-
-## 4. Serving the frontend
+### 4.2 Frontend
 
 ```bash
 cd frontend
@@ -106,9 +123,10 @@ npm run dev
 ## 5. Demo accounts
 
 The demo database `inventory_test` ships with two pre-registered accounts.
-**They only work if the backend is started with `DB_NAME=inventory_test`**
-(Option B in section 3) — a backend pointed at the default `postgres`
-database will reject them with "Invalid credentials".
+**They only work when the backend uses `inventory_test`** — `./serve.sh`
+handles this automatically; when serving manually, start with
+`DB_NAME=inventory_test` (section 4.1). A backend pointed at the default
+`postgres` database will reject them with "Invalid credentials".
 
 | Role | Username | Password | Sees in sidebar |
 | ---- | -------- | -------- | --------------- |
@@ -158,8 +176,11 @@ psql -U postgres -h localhost -c "DROP DATABASE IF EXISTS inventory_test; CREATE
 
 ## 7. Stopping the servers
 
+- **If you ran `./serve.sh`:** just press `Ctrl+C` in that terminal — it stops
+  backend and frontend together.
+- **Manual terminals:**
+
 ```bash
-# Ctrl+C in each terminal, or:
 pkill -f "uvicorn inventory_management_system"   # stop backend
 pkill -f vite                                     # stop frontend
 ```
@@ -170,9 +191,9 @@ pkill -f vite                                     # stop frontend
 
 | Symptom | Fix |
 | ------- | --- |
-| Login says **"Invalid credentials"** with the demo accounts | The backend is connected to the wrong database. Start it with `DB_NAME=inventory_test` (section 3, Option B), after killing any stale server on port 8000 |
+| Login says **"Invalid credentials"** with the demo accounts | Backend is on the wrong database. Use `./serve.sh` (or start manually with `DB_NAME=inventory_test`, section 4.1) after killing any stale server on port 8000 |
 | Frontend shows network errors | Start the backend first; check `http://localhost:8000/` |
-| `Database "..." does not exist` | Create it: `psql -U postgres -h localhost -c "CREATE DATABASE inventory_test;"` |
+| `Database "..." does not exist` | `./serve.sh` creates it automatically, or: `psql -U postgres -h localhost -c "CREATE DATABASE inventory_test;"` |
 | 401 on API calls | Log in again — tokens expire after 7 days |
-| Port already in use | A stale server is still running — `pkill -f "uvicorn inventory_management_system"` first, or change ports |
+| "Address already in use" / port busy | A stale server is running. `./serve.sh` skips an already-running backend; otherwise `pkill -f "uvicorn inventory_management_system"` |
 | 403 on Dashboard/Products | You are logged in as a **staff** user; use an admin account |
