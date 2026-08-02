@@ -1,10 +1,13 @@
 """Application entry point for the Smart Inventory & Business Management System.
 
-This module bootstraps the FastAPI application and exposes a minimal
-health-check endpoint so we can confirm the server is running.
+This module bootstraps the FastAPI application, registers the modular
+routers (products, sales, analytics), and exposes a minimal health-check
+endpoint.
 """
 
 from fastapi import FastAPI
+
+from inventory_management_system.routers import analytics, products, sales
 
 # Create the FastAPI application instance.
 app = FastAPI(
@@ -12,6 +15,11 @@ app = FastAPI(
     version="0.1.0",
     description="Backend for a simple inventory management system (educational project).",
 )
+
+# Register the API routers (modular, one per business domain).
+app.include_router(products.router)
+app.include_router(sales.router)
+app.include_router(analytics.router)
 
 
 @app.get("/", tags=["system"])
