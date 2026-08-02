@@ -55,8 +55,12 @@ uv run python -c "from inventory_management_system.database import init_db; init
 ```
 
 This creates the 8 core tables (`users`, `employees`, `customers`,
-`products`, `sales`, `sales_items`, `expenses`, `audit_logs`) using the raw
-SQL in `src/inventory_management_system/schema.sql`.
+`products`, `sales`, `sales_items`, `expenses`, `audit_logs`), the foreign
+key relationships, the inventory triggers (`update_stock_after_sale`,
+`low_stock_alert`), and the dashboard views (`top_selling_products_view`,
+`monthly_profit_view`, `low_stock_products_view`) using the raw SQL in
+`src/inventory_management_system/schema.sql`. The script is idempotent —
+safe to re-run any time.
 
 ## Project structure
 
@@ -76,6 +80,8 @@ backend/
 - [x] FastAPI app with `/` health check endpoint
 - [x] psycopg connection helper (env var driven)
 - [x] Master schema: 8 placeholder tables (raw SQL)
-- [ ] Table relationships / foreign keys / constraints
+- [x] Entity relationships (foreign keys)
+- [x] Triggers: stock reduction + audit logging + low-stock alerts
+- [x] Analytical views (top sellers, monthly profit, low stock)
 - [ ] API endpoints for each entity
 - [ ] Authentication & roles
