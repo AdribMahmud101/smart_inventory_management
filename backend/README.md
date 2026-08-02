@@ -1,0 +1,81 @@
+# Smart Inventory and Business Management System — Backend
+
+Educational backend for a smart inventory and business management system.
+Built with **FastAPI** + **PostgreSQL**, using **raw SQL only** (no ORM).
+
+> This README is updated incrementally as the project grows.
+
+## Requirements
+
+- [uv](https://docs.astral.sh/uv/) (Python package manager)
+- A running local PostgreSQL instance
+
+## Setup
+
+```bash
+cd backend
+uv sync
+```
+
+This creates the virtual environment (`.venv`) and installs all dependencies
+listed in `pyproject.toml`.
+
+## Running the server
+
+```bash
+uv run uvicorn inventory_management_system.main:app --reload
+```
+
+Open <http://127.0.0.1:8000/> — you should see:
+
+```json
+{"status": "System Online"}
+```
+
+Interactive API docs are available at <http://127.0.0.1:8000/docs>.
+
+## Environment variables
+
+Database credentials default to local-dev values and can be overridden:
+
+| Variable       | Default     |
+| -------------- | ----------- |
+| `DB_HOST`      | `localhost` |
+| `DB_PORT`      | `5432`      |
+| `DB_NAME`      | `postgres`  |
+| `DB_USER`      | `postgres`  |
+| `DB_PASSWORD`  | `postgres`  |
+
+## Applying the database schema
+
+Once your PostgreSQL server is up:
+
+```bash
+uv run python -c "from inventory_management_system.database import init_db; init_db()"
+```
+
+This creates the 8 core tables (`users`, `employees`, `customers`,
+`products`, `sales`, `sales_items`, `expenses`, `audit_logs`) using the raw
+SQL in `src/inventory_management_system/schema.sql`.
+
+## Project structure
+
+```
+backend/
+├── pyproject.toml
+├── uv.lock
+└── src/inventory_management_system/
+    ├── main.py       # FastAPI app + health check endpoint
+    ├── database.py   # psycopg connection + schema loader
+    └── schema.sql    # raw CREATE TABLE statements (placeholders)
+```
+
+## Current status
+
+- [x] Project initialized with `uv`
+- [x] FastAPI app with `/` health check endpoint
+- [x] psycopg connection helper (env var driven)
+- [x] Master schema: 8 placeholder tables (raw SQL)
+- [ ] Table relationships / foreign keys / constraints
+- [ ] API endpoints for each entity
+- [ ] Authentication & roles
