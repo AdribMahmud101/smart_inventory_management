@@ -81,6 +81,52 @@ That's it — one command, nothing else to run.
 
 ---
 
+## 3b. Live share — share the app with a teammate over the internet
+
+```bash
+python3 serve.py
+```
+
+`serve.py` (project root, Python stdlib only) is the SAME one-command stack
+plus a public tunnel so someone else can open the app remotely:
+
+0. **Stops any already-running stack** (backend, frontend, tunnels, and any
+   older `serve.py`) and waits until ports `8000`/`5173` are actually free —
+   running it twice always ends with exactly one clean stack
+1. Creates `inventory_test` + applies the schema (idempotent)
+2. Starts the **backend** on <http://127.0.0.1:8000> (waits until healthy)
+   — with `DB_NAME=inventory_test` set automatically, so demo logins work
+3. Starts the **frontend** on <http://localhost:5173>
+4. Spawns a **Pinggy** tunnel (`ssh -p 443 -R0:localhost:5173 ... a.pinggy.io`)
+   and parses its output for the public `https://...pinggy-free.link` URL
+5. Prints a banner with all three URLs, e.g.:
+
+```
+======================================================================
+  Smart Inventory :: LIVE SHARE
+======================================================================
+  Backend API (Local):      http://127.0.0.1:8000
+  Frontend App (Local):     http://localhost:5173
+  Teammate Live Share URL:  https://white-cats-jump.loca.lt
+----------------------------------------------------------------------
+  Send the Live Share URL to your teammate; the app is fully usable
+  (login, POS, products, dashboard) through the single tunnel port.
+  PostgreSQL is only needed on YOUR machine — the backend stays private.
+----------------------------------------------------------------------
+  Press Ctrl+C to stop all services.
+======================================================================
+```
+
+- The tunnel points at Vite, which proxies `/api/*` → `http://127.0.0.1:8000`,
+  so the teammate gets the whole app (login, POS, products, dashboard)
+  through one HTTPS URL. PostgreSQL only ever runs on your machine.
+- `Ctrl+C` / `SIGTERM` stops backend, frontend and tunnel together — no
+  orphan processes.
+- First visit to a `*.loca.lt` URL shows a short "continue" page — click it.
+- No internet/tunnel needed? Just use `./serve.sh` from section 3 instead.
+
+---
+
 ## 4. Manual serving (advanced / alternative)
 
 Only needed if you want the servers in separate terminals.
