@@ -14,6 +14,7 @@ import {
   YAxis,
 } from 'recharts'
 import api from '@/lib/api'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 // Bar chart palette (shared between the two charts).
@@ -22,18 +23,21 @@ const COLORS = ['#2563eb', '#7c3aed', '#0891b2', '#059669', '#d97706', '#dc2626'
 export default function Dashboard() {
   const [monthly, setMonthly] = useState([])
   const [topSellers, setTopSellers] = useState([])
+  const [lowStock, setLowStock] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Admin-only endpoints — this view is guarded by AdminRoute.
     const load = async () => {
       try {
-        const [profitRes, sellersRes] = await Promise.all([
+        const [profitRes, sellersRes, lowRes] = await Promise.all([
           api.get('/analytics/monthly-profit'),
           api.get('/analytics/top-selling-products'),
+          api.get('/analytics/low-stock-products'),
         ])
         setMonthly(profitRes.data)
         setTopSellers(sellersRes.data)
+        setLowStock(lowRes.data)
       } catch (err) {
         toast.error(err.response?.data?.detail || 'Could not load analytics')
       } finally {
@@ -137,6 +141,28 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Low stock alert list */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Low Stock Alerts</CardTitle>
+          <CardDescription>Source: low_stock_products_view (below 5 units)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {lowStock.length === 0 ? (
+            <p className="text-sm text-muted-foreground">All products are well stocked.</p>
+          ) : (
+            <ul className="space-y-2">
+              {lowStock.map((p, i) => (
+                <li key={i} className="flex items-center justify-between rounded-lg border px-4 py-2">
+                  <span className="font-medium">{p.product_name}</span>
+                  <Badge variant="destructive">{p.current_stock} left</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

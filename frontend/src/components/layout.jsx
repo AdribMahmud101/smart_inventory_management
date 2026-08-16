@@ -7,6 +7,7 @@ import {
   Users,
   UserCog,
   Wallet,
+  Receipt,
   LogOut,
   Menu,
   X,
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { to: '/customers', label: 'Customers', icon: Users, roles: ['all'] },
   { to: '/employees', label: 'Employees', icon: UserCog, roles: ['all'] },
   { to: '/expenses', label: 'Expenses', icon: Wallet, roles: ['all'] },
+  { to: '/sales', label: 'Sales History', icon: Receipt, roles: ['all'] },
 ]
 
 export default function Layout() {

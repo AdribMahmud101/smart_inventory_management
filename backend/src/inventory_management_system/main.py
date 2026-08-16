@@ -8,7 +8,16 @@ endpoint.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from inventory_management_system.routers import analytics, auth, products, sales
+from inventory_management_system.routers import (
+    analytics,
+    audit,
+    auth,
+    customers,
+    employees,
+    expenses,
+    products,
+    sales,
+)
 
 # Create the FastAPI application instance.
 app = FastAPI(
@@ -32,6 +41,10 @@ app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(sales.router)
 app.include_router(analytics.router)
+app.include_router(customers.router)
+app.include_router(employees.router)
+app.include_router(expenses.router)
+app.include_router(audit.router)
 
 
 @app.get("/", tags=["system"])

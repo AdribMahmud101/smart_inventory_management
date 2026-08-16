@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from psycopg.rows import dict_row
 
 from ..database import get_connection
-from ..schemas import CheckoutRequest, CheckoutResponse, SaleItemOut
+from ..schemas import CheckoutRequest, CheckoutResponse, SaleItemOut, SaleListItem
 from ..security import get_current_user
 
 router = APIRouter(
@@ -28,6 +28,28 @@ router = APIRouter(
     tags=["sales"],
     dependencies=[Depends(get_current_user)],
 )
+
+
+@router.get("", response_model=list[SaleListItem])
+def list_sales():
+    """Recent sales with customer / employee names joined in.
+
+    A LEFT JOIN keeps sales without a customer or employee visible.
+    """
+    with get_connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            SELECT s.id, s.sale_date, s.total_amount, s.payment_method, s.status,
+                   c.full_name AS customer_name,
+                   e.full_name AS employee_name
+            FROM sales AS s
+            LEFT JOIN customers AS c ON c.id = s.customer_id
+            LEFT JOIN employees AS e ON e.id = s.employee_id
+            ORDER BY s.id DESC
+            LIMIT 100
+            """
+        )
+        return cur.fetchall()
 
 
 @router.post("", response_model=CheckoutResponse)

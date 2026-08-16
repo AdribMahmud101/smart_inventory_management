@@ -71,8 +71,39 @@ backend/
 └── src/inventory_management_system/
     ├── main.py       # FastAPI app + health check endpoint
     ├── database.py   # psycopg connection + schema loader
-    └── schema.sql    # raw CREATE TABLE statements (placeholders)
+    ├── security.py   # PBKDF2 hashing, bearer tokens, role guards
+    ├── schemas.py    # Pydantic request/response models
+    ├── schema.sql    # raw SQL: tables, FKs, triggers, views
+    └── routers/
+        ├── auth.py       # register / login / logout / me
+        ├── products.py   # product CRUD
+        ├── customers.py  # customer CRUD
+        ├── employees.py  # employee CRUD
+        ├── expenses.py   # expense CRUD
+        ├── sales.py      # POS checkout + sales history
+        ├── analytics.py  # dashboard views (admin)
+        └── audit.py      # audit trail (read-only)
 ```
+
+## API endpoints
+
+| Method | Path | Access | Purpose |
+| ------ | ---- | ------ | ------- |
+| GET | `/` | public | health check |
+| POST | `/auth/register`, `/auth/login`, `/auth/logout` | public | accounts |
+| GET | `/auth/me` | any user | session info |
+| GET/POST | `/products` | any user | list / create products |
+| PUT/DELETE | `/products/{id}` | any user | update / delete product |
+| GET/POST | `/customers` | any user | list / create customers |
+| PUT/DELETE | `/customers/{id}` | any user | update / delete customer |
+| GET/POST | `/employees` | any user | list / create employees |
+| PUT/DELETE | `/employees/{id}` | any user | update / delete employee |
+| GET/POST | `/expenses` | any user | list / create expenses |
+| PUT/DELETE | `/expenses/{id}` | any user | update / delete expense |
+| GET | `/sales` | any user | sales history (100 latest) |
+| POST | `/sales` | any user | POS checkout |
+| GET | `/analytics/*` | **admin** | monthly profit, top sellers, low stock |
+| GET | `/audit` | any user | audit trail (100 latest) |
 
 ## Current status
 
@@ -86,6 +117,7 @@ backend/
 - [x] API routers: products CRUD, POS checkout, analytics views
 - [x] Pydantic request/response validation (interactive `/docs`)
 - [x] Authentication & roles (`/auth/*`, PBKDF2 hashing, bearer tokens)
-- [ ] Customers / employees / expenses endpoints
-- [ ] Automated tests / linting / CI
-- [ ] Frontend
+- [x] Customers / employees / expenses CRUD
+- [x] Sales history + audit trail endpoints
+- [x] Frontend (see `frontend/` and `serve.md`)
+- [ ] Automated tests / linting / CI (educational scope)

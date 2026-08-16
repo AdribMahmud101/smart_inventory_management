@@ -6,13 +6,16 @@ import Login from '@/views/Login'
 import Dashboard from '@/views/Dashboard'
 import Pos from '@/views/Pos'
 import Products from '@/views/Products'
-import Placeholder from '@/views/Placeholder'
+import Customers from '@/views/Customers'
+import Employees from '@/views/Employees'
+import Expenses from '@/views/Expenses'
+import Sales from '@/views/Sales'
 
 // Main router: maps every URL to a view.
 //  - /login        public
 //  - everything else requires a valid bearer token (ProtectedRoute)
 //  - /dashboard, /products are admin-only (AdminRoute)
-//  - customers/employees/expenses are placeholders for later phases
+//  - customers/employees/expenses/sales are full CRUD modules
 export default function App() {
   return (
     <AuthProvider>
@@ -23,9 +26,10 @@ export default function App() {
           <Route element={<Layout />}>
             <Route index element={<Navigate to="/pos" replace />} />
             <Route path="/pos" element={<Pos />} />
-            <Route path="/customers" element={<Placeholder title="Customer Management" />} />
-            <Route path="/employees" element={<Placeholder title="Employee Management" />} />
-            <Route path="/expenses" element={<Placeholder title="Expense Logging" />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/expenses" element={<Expenses />} />
+            <Route path="/sales" element={<Sales />} />
 
             <Route element={<AdminRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
